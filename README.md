@@ -95,7 +95,7 @@ The codebase file parameter is optional. If not provided, you'll need to specify
          "command": "/opt/homebrew/bin/deepview-mcp",
          "args": [],
          "env": {
-           "GEMINI_API_KEY": "AIzaSyDljkwSvHtjEhzrzZDUqa5DH_Tecn6Novc"
+           "GEMINI_API_KEY": "your API key here"
          }
        }
      }
