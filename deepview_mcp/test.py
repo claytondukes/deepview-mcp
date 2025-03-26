@@ -28,17 +28,14 @@ if not os.environ.get("GEMINI_API_KEY"):
     sys.exit(1)
 
 # Hardcode the path to the codebase file
-CODEBASE_FILE = "/Users/xo/cloudfix-rightspend/repomix-output.xml"
+CODEBASE_FILE = "./repomix-output.xml"
 
 async def async_main():
     # Get question from command line arguments
     question = "What does this codebase do?"  # default question
     if len(sys.argv) > 1:
         question = sys.argv[1]
-    
-    # Path to the server script
-    # server_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cli.py")
-    
+      
     # Set up server parameters
     server_params = StdioServerParameters(
         command="deepview-mcp", # sys.executable,

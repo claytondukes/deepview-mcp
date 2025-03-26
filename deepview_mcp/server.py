@@ -46,11 +46,11 @@ def load_codebase_from_file(file_path: str) -> str:
         logger.error(f"Error loading codebase: {str(e)}")
         raise
 
-def create_mcp_server(model_name="gemini-2.5-pro-exp-03-25"):
+def create_mcp_server(model_name="gemini-2.0-flash-lite"):
     """Create and configure the MCP server.
     
     Args:
-        model_name: The Gemini model to use for queries (default: gemini-2.5-pro-exp-03-25)
+        model_name: The Gemini model to use for queries
     
     Returns:
         An MCP server instance
@@ -62,7 +62,7 @@ def create_mcp_server(model_name="gemini-2.5-pro-exp-03-25"):
     @mcp_server.tool()
     def deepview(question: str, codebase_file: str = None) -> Dict[str, Any]:
         """
-        Ask a question about the codebase using Gemini 2.5 Pro.
+        Ask a question about the codebase using Gemini.
         
         Args:
             question: The question to ask about the codebase
@@ -107,7 +107,7 @@ Provide a clear, accurate response based solely on the provided code."""
             model = genai.GenerativeModel(model_name)
             response = model.generate_content(prompt)
             
-            return {"result": response.text}
+            return response.text
         except Exception as e:
             logger.error(f"Error querying {model_name}: {str(e)}")
             return {"error": f"Failed to query {model_name}: {str(e)}"}
