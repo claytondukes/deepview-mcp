@@ -111,13 +111,64 @@ The server provides one tool:
 
 ## Preparing Your Codebase
 
-You can use tools like repomix to prepare your codebase in an AI-friendly format. For example:
+DeepView MCP works best with a single file containing your entire codebase. You can use [repomix](https://github.com/yamadashy/repomix) to prepare your codebase in an AI-friendly format.
+
+### Using repomix
+
+1. **Basic Usage**: Run repomix in your project directory to create a default output file:
 
 ```bash
-npx repomix 
+# Make sure you're using Node.js 18.17.0 or higher
+npx repomix
 ```
 
-Then load this file using the `deepview-mcp` command or pass it as a parameter to the `deepview` function.
+This will generate a `repomix-output.xml` file containing your codebase.
+
+2. **Custom Configuration**: Create a configuration file to customize which files get packaged and the output format:
+
+```bash
+npx repomix --init
+```
+
+This creates a `repomix.config.json` file that you can edit to:
+- Include/exclude specific files or directories
+- Change the output format (XML, JSON, TXT)
+- Set the output filename
+- Configure other packaging options
+
+3. **Loading the Codebase**: Use the generated file with DeepView MCP:
+
+```bash
+deepview-mcp /path/to/repomix-output.xml
+```
+
+### Example repomix Configuration
+
+Here's an example `repomix.config.json` file:
+
+```json
+{
+  "include": [
+    "**/*.py",
+    "**/*.js",
+    "**/*.ts",
+    "**/*.jsx",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules/**",
+    "venv/**",
+    "**/__pycache__/**",
+    "**/test/**"
+  ],
+  "output": {
+    "format": "xml",
+    "filename": "my-codebase.xml"
+  }
+}
+```
+
+For more information on repomix, visit the [repomix GitHub repository](https://github.com/yamadashy/repomix).
 
 ## License
 
