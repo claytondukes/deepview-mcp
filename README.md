@@ -2,6 +2,8 @@
 
 DeepView MCP is a Model Context Protocol server that enables IDEs like Cursor and Windsurf to analyze large codebases using Gemini 2.5 Pro's extensive context window.
 
+[![PyPI version](https://badge.fury.io/py/deepview-mcp.svg)](https://badge.fury.io/py/deepview-mcp)
+
 ## Features
 
 - Load an entire codebase from a single text file (e.g., created with tools like repomix)
