@@ -1,0 +1,40 @@
+[tool.poetry]
+name = "deepview-mcp"
+version = "0.1.0"
+description = "A Model Context Protocol server for analyzing large codebases using Gemini 1.5 Pro"
+authors = ["Dmitry Degtyarev <ddegtyarev@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/ddegtyarev/deepview-mcp"
+keywords = ["mcp", "gemini", "code-analysis", "ai", "ide"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+mcp = "*"
+google-generativeai = "*"
+python-dotenv = "*"
+pydantic = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"
+black = "^23.0.0"
+isort = "^5.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+deepview-mcp = "deepview_mcp.cli:main"
