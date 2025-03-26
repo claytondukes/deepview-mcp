@@ -1,11 +1,21 @@
 import sys
-import json
 import os
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 import asyncio
 from contextlib import AsyncExitStack
 from dotenv import load_dotenv
+
+"""
+DeepView MCP Test Script
+
+This script demonstrates how to use the DeepView MCP client to query a codebase
+using the Gemini model. It loads a codebase file and sends a question to the MCP server,
+then displays the response from the model.
+
+Usage:
+    python test.py "Your question about the codebase here"
+"""
 
 # Load environment variables from .env file
 load_dotenv()
@@ -27,12 +37,12 @@ async def async_main():
         question = sys.argv[1]
     
     # Path to the server script
-    server_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py")
+    # server_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cli.py")
     
     # Set up server parameters
     server_params = StdioServerParameters(
-        command=sys.executable,
-        args=[server_script, CODEBASE_FILE],
+        command="deepview-mcp", # sys.executable,
+        args=[CODEBASE_FILE],
         env=os.environ.copy()  # Pass current environment variables including GEMINI_API_KEY
     )
     
@@ -64,7 +74,7 @@ async def async_main():
         try:
             # Call the query_codebase tool
             call_response = await session.call_tool(
-                "query_codebase", 
+                "deepview", 
                 {"question": question}
             )
             
@@ -73,18 +83,17 @@ async def async_main():
                 # Debug: print full response
                 print("Raw Response:", call_response, file=sys.stderr)
                 
-                if hasattr(call_response, 'result'):
-                    print(call_response.result)
+                # Handle the response based on its structure
+                if hasattr(call_response, 'content') and call_response.content:
+                    # Extract text from TextContent objects
+                    if isinstance(call_response.content, list):
+                        for item in call_response.content:
+                            if hasattr(item, 'text'):
+                                print(item.text)
+                    else:
+                        print(call_response.content)
                 else:
-                    try:
-                        # Try to access as dictionary
-                        result = call_response.get('result')
-                        if result:
-                            print(result)
-                        else:
-                            print(f"Error: {json.dumps(call_response)}")
-                    except Exception as e:
-                        print(f"Error: Unable to extract result from response: {call_response}, {str(e)}")
+                    print("No content found in response")
             else:
                 print("Error: No response received from server")
                 
