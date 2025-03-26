@@ -92,10 +92,10 @@ The codebase file parameter is optional. If not provided, you'll need to specify
    {
      "mcpServers": {
        "deepview": {
-         "command": "/path/to/deepview-mcp",
-         "args": ["/path/to/codebase.txt"],
+         "command": "/opt/homebrew/bin/deepview-mcp",
+         "args": [],
          "env": {
-           "GEMINI_API_KEY": "your_gemini_api_key"
+           "GEMINI_API_KEY": "AIzaSyDljkwSvHtjEhzrzZDUqa5DH_Tecn6Novc"
          }
        }
      }
