@@ -24,37 +24,11 @@ DeepView MCP is a Model Context Protocol server that enables IDEs like Cursor an
 pip install deepview-mcp
 ```
 
-### Using Poetry
-
-```bash
-poetry add deepview-mcp
-```
-
-### From Source
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/ai-1st/deepview-mcp.git
-   cd deepview-mcp
-   ```
-
-2. Install with Poetry:
-   ```bash
-   poetry install
-   ```
-
-3. Set up your environment variables:
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Then edit the `.env` file and add your Gemini API key.
-
 ## Usage
 
 ### Starting the Server
 
-Run the server with:
+Note: you don't need to start the server manually. These parameters are configured in your MCP setup in your IDE (see below).
 
 ```bash
 # Basic usage with default settings
@@ -74,51 +48,26 @@ The codebase file parameter is optional. If not provided, you'll need to specify
 - `--model MODEL`: Specify the Gemini model to use (default: gemini-2.0-flash-lite)
 - `--log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}`: Set the logging level (default: INFO)
 
-### Using with an IDE
+### Using with an IDE (Cursor/Windsurf/...)
 
-#### Cursor
-
-1. Open Cursor's settings
-2. Find the MCP section and add a new server
-3. Use a config like: `{"command": "deepview-mcp", "args": ["path/to/codebase.txt"]}`
-4. Restart Cursor to connect
-
-#### Windsurf
-
-1. Open Windsurf's settings
+1. Open IDE settings
 2. Navigate to the MCP configuration
 3. Add a new MCP server with the following configuration:
    ```json
    {
      "mcpServers": {
        "deepview": {
-         "command": "/opt/homebrew/bin/deepview-mcp",
-         "args": [],
+         "command": "/path/to/deepview-mcp",
+         "args": ["/path/to/codebase.txt"],
          "env": {
-           "GEMINI_API_KEY": "your API key here"
+           "GEMINI_API_KEY": "your_gemini_api_key"
          }
        }
      }
    }
    ```
-4. Restart Windsurf to connect
+4. Reload MCP servers configuration
 
-### Programmatic Usage
-
-You can also use DeepView MCP programmatically in your Python code:
-
-```python
-from deepview_mcp.server import deepview
-
-# Ask a question about a codebase
-response = deepview(
-    question="What is the main purpose of this codebase?",
-    codebase_file="/path/to/codebase.txt"
-)
-
-# Print the response
-print(response)
-```
 
 ### Available Tools
 
@@ -130,7 +79,7 @@ The server provides one tool:
 
 ## Preparing Your Codebase
 
-DeepView MCP works best with a single file containing your entire codebase. You can use [repomix](https://github.com/yamadashy/repomix) to prepare your codebase in an AI-friendly format.
+DeepView MCP requires a single file containing your entire codebase. You can use [repomix](https://github.com/yamadashy/repomix) to prepare your codebase in an AI-friendly format.
 
 ### Using repomix
 
@@ -154,12 +103,6 @@ This creates a `repomix.config.json` file that you can edit to:
 - Change the output format (XML, JSON, TXT)
 - Set the output filename
 - Configure other packaging options
-
-3. **Loading the Codebase**: Use the generated file with DeepView MCP:
-
-```bash
-deepview-mcp /path/to/repomix-output.xml
-```
 
 ### Example repomix Configuration
 
