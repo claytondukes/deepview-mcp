@@ -1,13 +1,13 @@
 # DeepView MCP
 
-DeepView MCP is a Model Context Protocol server that enables IDEs like Cursor and Windsurf to analyze large codebases using Gemini 2.5 Pro's extensive context window.
+DeepView MCP is a Model Context Protocol server that enables IDEs like Cursor and Windsurf to analyze large codebases using Gemini's extensive context window.
 
 [![PyPI version](https://badge.fury.io/py/deepview-mcp.svg)](https://badge.fury.io/py/deepview-mcp)
 
 ## Features
 
 - Load an entire codebase from a single text file (e.g., created with tools like repomix)
-- Query the codebase using Gemini 2.5 Pro's large context window (up to 2M tokens)
+- Query the codebase using Gemini's large context window
 - Connect to IDEs that support the MCP protocol, like Cursor and Windsurf
 - Configurable Gemini model selection via command-line arguments
 
@@ -34,7 +34,7 @@ poetry add deepview-mcp
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/ddegtyarev/deepview-mcp.git
+   git clone https://github.com/ai-1st/deepview-mcp.git
    cd deepview-mcp
    ```
 
@@ -71,7 +71,7 @@ The codebase file parameter is optional. If not provided, you'll need to specify
 
 ### Command-line Options
 
-- `--model MODEL`: Specify the Gemini model to use (default: gemini-2.5-pro-exp-03-25)
+- `--model MODEL`: Specify the Gemini model to use (default: gemini-2.0-flash-lite)
 - `--log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}`: Set the logging level (default: INFO)
 
 ### Using with an IDE
@@ -102,6 +102,23 @@ The codebase file parameter is optional. If not provided, you'll need to specify
    }
    ```
 4. Restart Windsurf to connect
+
+### Programmatic Usage
+
+You can also use DeepView MCP programmatically in your Python code:
+
+```python
+from deepview_mcp.server import deepview
+
+# Ask a question about a codebase
+response = deepview(
+    question="What is the main purpose of this codebase?",
+    codebase_file="/path/to/codebase.txt"
+)
+
+# Print the response
+print(response)
+```
 
 ### Available Tools
 
