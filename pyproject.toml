@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deepview-mcp"
-version = "0.2.1"
+version = "0.2.2"
 description = "A Model Context Protocol server for analyzing large codebases using Gemini 2.0"
 authors = ["Dmitry Degtyarev <ddegtyarev@gmail.com>"]
 license = "MIT"

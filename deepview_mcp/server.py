@@ -89,23 +89,38 @@ def create_mcp_server(model_name="gemini-2.0-flash-lite"):
             return {"error": "No codebase loaded. Please provide a codebase file."}
         
         # Create prompt for Gemini
-        prompt = f"""You are a programming assistant analyzing code. Below is the content of a code repository.
+        system_prompt = (
+            "You are a diligent programming assistant analyzing code. Your task is to "
+            "answer questions about the provided code repository accurately and in detail. "
+            "Always include specific references to files, functions, and class names in your "
+            "responses. At the end, list related files, functions, and classes that could be "
+            "potentially relevant to the question, explaining their relevance."
+        )
+
+        user_prompt = f"""
+Below is the content of a code repository. 
 Please answer the following question about the code:
 
-QUESTION: {question}
+<QUESTION>
+{question}
+</QUESTION>
 
-CODE REPOSITORY:
+<CODE_REPOSITORY>
 ```
 {local_codebase}
 ```
-
-Provide a clear, accurate response based solely on the provided code."""
+</CODE_REPOSITORY>"""
 
         try:
             # Use Gemini to generate a response
             logger.info(f"Using Gemini model: {model_name}")
             model = genai.GenerativeModel(model_name)
-            response = model.generate_content(prompt)
+            response = model.generate_content(
+                contents=[
+                    {"role": "system", "parts": [system_prompt]},
+                    {"role": "user", "parts": [user_prompt]}
+                ]
+            )
             
             return response.text
         except Exception as e:
