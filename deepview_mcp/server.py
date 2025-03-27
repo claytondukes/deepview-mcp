@@ -114,13 +114,8 @@ Please answer the following question about the code:
         try:
             # Use Gemini to generate a response
             logger.info(f"Using Gemini model: {model_name}")
-            model = genai.GenerativeModel(model_name)
-            response = model.generate_content(
-                contents=[
-                    {"role": "system", "parts": [system_prompt]},
-                    {"role": "user", "parts": [user_prompt]}
-                ]
-            )
+            model = genai.GenerativeModel(model_name, system_instruction=system_prompt)
+            response = model.generate_content(user_prompt)
             
             return response.text
         except Exception as e:
