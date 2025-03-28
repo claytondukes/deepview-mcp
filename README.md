@@ -58,6 +58,20 @@ The codebase file parameter is optional. If not provided, you'll need to specify
      "mcpServers": {
        "deepview": {
          "command": "/path/to/deepview-mcp",
+         "args": [],
+         "env": {
+           "GEMINI_API_KEY": "your_gemini_api_key"
+         }
+       }
+     }
+   }
+
+Setting a codebase file is optional. If you are working with the same codebase, you can set the default codebase file using the following configuration:
+  ```json
+  {
+     "mcpServers": {
+       "deepview": {
+         "command": "/path/to/deepview-mcp",
          "args": ["/path/to/codebase.txt"],
          "env": {
            "GEMINI_API_KEY": "your_gemini_api_key"
@@ -65,7 +79,24 @@ The codebase file parameter is optional. If not provided, you'll need to specify
        }
      }
    }
-   ```
+  ```
+
+Here's how to specify the Gemini version to use:
+
+```json
+{
+   "mcpServers": {
+     "deepview": {
+       "command": "/path/to/deepview-mcp",
+       "args": ["--model", "gemini-2.5-flash"],
+       "env": {
+         "GEMINI_API_KEY": "your_gemini_api_key"
+       }
+     }
+   }
+}
+```
+
 4. Reload MCP servers configuration
 
 

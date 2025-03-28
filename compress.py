@@ -68,16 +68,14 @@ def main():
             print(f"Compressing text with target ratio: {args.ratio}...", file=sys.stderr)
         compressed_result = llm_lingua.compress_prompt(
             input_text, 
-            # question="What does this codebase do?",
-            rate=args.ratio,
-            # condition_compare=True,
-            # condition_in_question="after",
-            # rank_method="longllmlingua",
-            # use_sentence_level_filter=False,
-            # use_token_level_filter=False,
-            # context_budget="+100",
-            dynamic_context_compression_ratio=args.ratio,  # enable dynamic_context_compression_ratio
-            # reorder_context="sort",
+            rate=0.55,
+            # Set the special parameter for LongLLMLingua
+            condition_in_question="after_condition",
+            reorder_context="sort",
+            dynamic_context_compression_ratio=0.3, # or 0.4
+            condition_compare=True,
+            context_budget="+100",
+            rank_method="longllmlingua",
         )
         
         compressed_text = compressed_result["compressed_prompt"]
