@@ -15,8 +15,8 @@ def parse_args():
     parser.add_argument("codebase_file", nargs="?", type=str, help="Path to the codebase file to load")
     parser.add_argument("--log-level", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], 
                         default="INFO", help="Set the logging level")
-    parser.add_argument("--model", type=str, default="gemini-2.0-flash-lite",
-                        help="Gemini model to use (default: gemini-2.0-flash-lite)")
+    parser.add_argument("--model", type=str, default="gemini-2.5-flash",
+                        help="Gemini model to use (default: gemini-2.5-flash)")
     return parser.parse_args()
 
 def main():

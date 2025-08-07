@@ -1,6 +1,6 @@
 """
 DeepView MCP Server - A Model Context Protocol server implementation
-for analyzing large codebases using Gemini 1.5 Pro.
+for analyzing large codebases using Gemini 2.5 Pro.
 """
 
 import os
@@ -46,7 +46,7 @@ def load_codebase_from_file(file_path: str) -> str:
         logger.error(f"Error loading codebase: {str(e)}")
         raise
 
-def create_mcp_server(model_name="gemini-2.0-flash-lite"):
+def create_mcp_server(model_name="gemini-2.5-flash"):
     """Create and configure the MCP server.
     
     Args:
