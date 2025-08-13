@@ -1,0 +1,9 @@
+# Ignore all files and directories in codebase/
+*
+
+# But allow the sample directory and its contents
+!sample/
+!sample/**
+
+# Keep this .gitignore file
+!.gitignore

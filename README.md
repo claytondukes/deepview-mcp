@@ -1,5 +1,3 @@
-[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/ai-1st-deepview-mcp-badge.png)](https://mseep.ai/app/ai-1st-deepview-mcp)
-
 # DeepView MCP
 
 DeepView MCP is a Model Context Protocol server that enables IDEs like Cursor and Windsurf to analyze large codebases using Gemini's extensive context window.
@@ -16,7 +14,7 @@ DeepView MCP is a Model Context Protocol server that enables IDEs like Cursor an
 
 ## Prerequisites
 
-- Python 3.13+
+- Python 3.8+
 - Gemini API key from [Google AI Studio](https://aistudio.google.com/)
 
 ## Installation
@@ -59,11 +57,35 @@ The codebase file parameter is optional. If not provided, you'll need to specify
 - `--model MODEL`: Specify the Gemini model to use (default: gemini-2.0-flash-lite)
 - `--log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}`: Set the logging level (default: INFO)
 
-### Using with an IDE (Cursor/Windsurf/...)
+### Using with Windsurf IDE
 
-1. Open IDE settings
-2. Navigate to the MCP configuration
-3. Add a new MCP server with the following configuration:
+For Docker-based setup (recommended):
+
+1. Start the DeepView MCP server:
+
+   ```bash
+   docker compose up -d
+   ```
+
+2. Add MCP server configuration to Windsurf:
+
+   ```json
+   {
+     "mcpServers": {
+       "deepview": {
+         "serverUrl": "http://localhost:8019/deepview-mcp/mcp",
+         "headers": {
+           "Content-Type": "application/json"
+         }
+       }
+     }
+   }
+   ```
+
+### Using with Other IDEs (Cursor, etc.)
+
+For direct command execution:
+
    ```json
    {
      "mcpServers": {
@@ -110,14 +132,17 @@ Here's how to specify the Gemini version to use:
 
 4. Reload MCP servers configuration
 
-
 ### Available Tools
 
-The server provides one tool:
+The server provides two MCP tools:
 
-1. `deepview`: Ask a question about the codebase
+1. **`deepview`**: Analyze codebase content with AI
    - Required parameter: `question` - The question to ask about the codebase
    - Optional parameter: `codebase_file` - Path to a codebase file to load before querying
+
+2. **`list_codebase_files`**: List available codebase files
+   - No parameters required
+   - Returns all available codebase files in the mounted directories
 
 ## Preparing Your Codebase
 
@@ -134,43 +159,7 @@ npx repomix
 
 This will generate a `repomix-output.xml` file containing your codebase.
 
-2. **Custom Configuration**: Create a configuration file to customize which files get packaged and the output format:
-
-```bash
-npx repomix --init
-```
-
-This creates a `repomix.config.json` file that you can edit to:
-- Include/exclude specific files or directories
-- Change the output format (XML, JSON, TXT)
-- Set the output filename
-- Configure other packaging options
-
-### Example repomix Configuration
-
-Here's an example `repomix.config.json` file:
-
-```json
-{
-  "include": [
-    "**/*.py",
-    "**/*.js",
-    "**/*.ts",
-    "**/*.jsx",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules/**",
-    "venv/**",
-    "**/__pycache__/**",
-    "**/test/**"
-  ],
-  "output": {
-    "format": "xml",
-    "filename": "my-codebase.xml"
-  }
-}
-```
+2. **Custom Configuration**: You can customize which files get packaged and the output format by creating a configuration file.
 
 For more information on repomix, visit the [repomix GitHub repository](https://github.com/yamadashy/repomix).
 
@@ -180,4 +169,4 @@ MIT
 
 ## Author
 
-Dmitry Degtyarev (ddegtyarev@gmail.com)
+Dmitry Degtyarev (<ddegtyarev@gmail.com>)

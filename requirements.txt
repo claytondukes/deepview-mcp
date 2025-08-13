@@ -2,3 +2,6 @@ mcp
 google-generativeai
 python-dotenv
 pydantic
+fastapi
+uvicorn
+pydantic-settings

@@ -1,0 +1,46 @@
+services:
+  deepview-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ${CONTAINER_NAME:-deepview-mcp}
+    ports:
+      - "127.0.0.1:${MCP_PORT:-8019}:${MCP_PORT:-8019}"
+    volumes:
+      # Mount codebase directory
+      - ${CODEBASE_PATH:-./codebase}:/app/codebase:ro
+      # Mount logs directory
+      - ${LOGS_PATH:-./logs}:/app/logs:rw
+      # Mount data directory for persistent storage
+      - ${DATA_PATH:-./data}:/data:rw
+    environment:
+      # Gemini API Configuration
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      # MCP Server Configuration
+      - MCP_TRANSPORT=${MCP_TRANSPORT:-http}
+      - MCP_HOST=${MCP_HOST:-0.0.0.0}
+      - MCP_PORT=${MCP_PORT:-8019}
+      - MCP_SERVER_NAME=deepview-mcp
+      - MCP_DESCRIPTION=DeepView MCP - Codebase Analysis Server
+      # Logging Configuration
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
+    command: >
+      python -m deepview_mcp.cli
+      --transport ${MCP_TRANSPORT:-http} 
+      --host ${MCP_HOST:-0.0.0.0} 
+      --port ${MCP_PORT:-8019}
+      --log-level ${LOG_LEVEL:-INFO} 
+      --model ${GEMINI_MODEL:-gemini-2.5-flash}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${MCP_PORT:-8019}/health"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-60s}
+
+networks:
+  default:
+    name: ${NETWORK_NAME:-deepview-mcp-network}

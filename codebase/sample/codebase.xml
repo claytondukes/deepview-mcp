@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<repository>
+  <metadata>
+    <name>Sample Web Application</name>
+    <description>A sample web application demonstrating authentication and user management</description>
+    <generated_by>repomix</generated_by>
+    <timestamp>2025-01-13T08:37:00Z</timestamp>
+    <total_files>8</total_files>
+    <total_lines>342</total_lines>
+  </metadata>
+  
+  <files>
+    <file path="src/app.py" lines="45">
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required
+import os
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///app.db')
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET', 'dev-secret-key')
+
+db = SQLAlchemy(app)
+jwt = JWTManager(app)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+@app.route('/auth/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    
+    user = User.query.filter_by(email=email).first()
+    if not user or not user.check_password(password):
+        return jsonify({'error': 'Invalid credentials'}), 401
+    
+    access_token = create_access_token(identity=user.id)
+    return jsonify({'access_token': access_token})
+
+@app.route('/users', methods=['GET'])
+@jwt_required()
+def get_users():
+    users = User.query.all()
+    return jsonify([{'id': u.id, 'email': u.email} for u in users])
+
+if __name__ == '__main__':
+    app.run(debug=True)
+    </file>
+    
+    <file path="src/models.py" lines="28">
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+
+db = SQLAlchemy()
+
+class User(db.Model):
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'email': self.email,
+            'created_at': self.created_at.isoformat()
+        }
+    </file>
+    
+    <file path="frontend/src/components/LoginForm.js" lines="42">
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const LoginForm = ({ onLogin }) => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        try {
+            const response = await axios.post('/auth/login', {
+                email,
+                password
+            });
+            
+            const { access_token } = response.data;
+            localStorage.setItem('token', access_token);
+            onLogin(access_token);
+        } catch (err) {
+            setError(err.response?.data?.error || 'Login failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        &lt;form onSubmit={handleSubmit} className="login-form"&gt;
+            &lt;input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+            /&gt;
+            &lt;input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+            /&gt;
+            &lt;button type="submit" disabled={loading}&gt;
+                {loading ? 'Logging in...' : 'Login'}
+            &lt;/button&gt;
+            {error && &lt;div className="error"&gt;{error}&lt;/div&gt;}
+        &lt;/form&gt;
+    );
+};
+
+export default LoginForm;
+    </file>
+    
+    <file path="frontend/src/components/UserList.js" lines="35">
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const UserList = () => {
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const fetchUsers = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get('/users', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            setUsers(response.data);
+        } catch (err) {
+            setError('Failed to fetch users');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) return &lt;div&gt;Loading users...&lt;/div&gt;;
+    if (error) return &lt;div className="error"&gt;{error}&lt;/div&gt;;
+
+    return (
+        &lt;div className="user-list"&gt;
+            &lt;h2&gt;Users&lt;/h2&gt;
+            {users.map(user => (
+                &lt;div key={user.id} className="user-item"&gt;
+                    &lt;span&gt;{user.email}&lt;/span&gt;
+                    &lt;span&gt;ID: {user.id}&lt;/span&gt;
+                &lt;/div&gt;
+            ))}
+        &lt;/div&gt;
+    );
+};
+
+export default UserList;
+    </file>
+    
+    <file path="README.md" lines="45">
+# Sample Web Application
+
+A full-stack web application demonstrating user authentication and management.
+
+## Features
+
+- User registration and authentication
+- JWT token-based security
+- React frontend with modern components
+- Flask backend with SQLAlchemy ORM
+- RESTful API design
+
+## Architecture
+
+### Backend (Flask)
+- `src/app.py` - Main application and routes
+- `src/models.py` - Database models
+- Authentication using Flask-JWT-Extended
+- SQLite database for development
+
+### Frontend (React)
+- `frontend/src/components/LoginForm.js` - User login component
+- `frontend/src/components/UserList.js` - Display users component
+- Axios for HTTP requests
+- Local storage for token management
+
+## API Endpoints
+
+### Authentication
+- `POST /auth/login` - User login
+- Returns JWT access token
+
+### Users
+- `GET /users` - List all users (requires authentication)
+
+## Setup
+
+1. Install dependencies:
+   ```bash
+   pip install flask flask-sqlalchemy flask-jwt-extended
+   npm install axios react
+   ```
+
+2. Set environment variables:
+   ```bash
+   export DATABASE_URL=sqlite:///app.db
+   export JWT_SECRET=your-secret-key
+   ```
+
+3. Run the application:
+   ```bash
+   python src/app.py
+   npm start
+   ```
+
+## Security Features
+
+- Password hashing using Werkzeug
+- JWT token authentication
+- Protected routes
+- Input validation
+    </file>
+    
+    <file path="requirements.txt" lines="8">
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Flask-JWT-Extended==4.5.3
+Werkzeug==2.3.7
+python-dotenv==1.0.0
+pytest==7.4.2
+pytest-flask==1.2.0
+requests==2.31.0
+    </file>
+    
+    <file path="package.json" lines="25">
+{
+  "name": "sample-web-app",
+  "version": "1.0.0",
+  "description": "Sample web application frontend",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "axios": "^1.5.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.4.3"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
+    </file>
+    
+    <file path="docker-compose.yml" lines="32">
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=sqlite:///app.db
+      - JWT_SECRET=dev-secret-key
+      - FLASK_ENV=development
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+    volumes:
+      - ./frontend/src:/app/src
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=webapp
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+    </file>
+  </files>
+</repository>

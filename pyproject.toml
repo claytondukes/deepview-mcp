@@ -26,6 +26,9 @@ mcp = "*"
 google-generativeai = "*"
 python-dotenv = "*"
 pydantic = "*"
+fastapi = "*"
+uvicorn = "*"
+pydantic-settings = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0.0"
