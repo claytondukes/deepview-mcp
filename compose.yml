@@ -26,6 +26,14 @@ services:
       # Logging Configuration
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
+      # OAuth / OIDC Configuration
+      - OAUTH_ENABLED=${OAUTH_ENABLED:-false}
+      - OIDC_ISSUER=${OIDC_ISSUER:-}
+      - OIDC_AUDIENCE=${OIDC_AUDIENCE:-}
+      - OIDC_JWKS_URL=${OIDC_JWKS_URL:-}
+      - OIDC_ALGS=${OIDC_ALGS:-RS256}
+      - OAUTH_REQUIRED_SCOPES=${OAUTH_REQUIRED_SCOPES:-deepview:read}
+      - OAUTH_CLOCK_SKEW_SECONDS=${OAUTH_CLOCK_SKEW_SECONDS:-60}
     command: >
       python -m deepview_mcp.cli
       --transport ${MCP_TRANSPORT:-http} 

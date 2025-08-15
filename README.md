@@ -144,6 +144,68 @@ The server provides two MCP tools:
    - No parameters required
    - Returns all available codebase files in the mounted directories
 
+## Authentication (OAuth / Auth0)
+
+DeepView MCP can operate as an OAuth2 resource server. When enabled, all
+analysis endpoints require a valid JWT issued by your IdP (e.g., Auth0). The
+`/health` endpoint remains public.
+
+### Enable OAuth
+
+1. Set the following environment variables (see `.env.example`):
+
+   - `OAUTH_ENABLED=true`
+   - `OIDC_ISSUER` (e.g., `https://auth.logzilla.net/`)
+   - `OIDC_AUDIENCE` (your API Identifier, e.g.,
+     `https://mcp.logzilla.io/deepview-mcp/mcp`)
+   - Optional: `OIDC_JWKS_URL` (auto-discovered if omitted)
+   - Optional: `OIDC_ALGS` (default `RS256`)
+   - Optional: `OAUTH_REQUIRED_SCOPES` (e.g., `deepview:read`)
+   - Optional: `OAUTH_CLOCK_SKEW_SECONDS` (default `60`)
+
+2. Docker users: `compose.yml` already passes these variables through to the
+   container. Update your `.env` file and `docker compose up -d`.
+
+### Auth0 setup (example)
+
+1. In Auth0 Dashboard, create an API:
+   - Identifier = `OIDC_AUDIENCE`.
+   - Signing Algorithm = RS256.
+   - Add scopes, e.g., `deepview:read`.
+2. Create an Application (SPA or Regular Web) and enable your desired
+   connections (e.g., GitHub).
+3. Optionally set a Default Audience so tokens include your API audience by
+   default.
+
+### Scopes model
+
+- Global read: a token having all scopes from `OAUTH_REQUIRED_SCOPES` (e.g.,
+  `deepview:read`) can access analysis generally.
+- Per-project: a token can also access a specific project when it includes
+  `deepview:project:{project_name}:read`.
+
+### Test with curl
+
+```bash
+# Missing/invalid token -> 401
+curl -i "http://localhost:8019/sample?question=Hello"
+
+# Valid token without scope -> 403
+curl -i \
+  -H "Authorization: Bearer $TOKEN_NO_SCOPE" \
+  "http://localhost:8019/sample?question=Hello"
+
+# Valid token with global scope -> 200
+curl -i \
+  -H "Authorization: Bearer $TOKEN_WITH_deepview_read" \
+  "http://localhost:8019/sample?question=Hello"
+
+# Or with project scope -> 200
+curl -i \
+  -H "Authorization: Bearer $TOKEN_WITH_project_scope" \
+  "http://localhost:8019/sample?question=Hello"
+```
+
 ## Preparing Your Codebase
 
 DeepView MCP requires a single file containing your entire codebase. You can use [repomix](https://github.com/yamadashy/repomix) to prepare your codebase in an AI-friendly format.

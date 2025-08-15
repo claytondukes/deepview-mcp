@@ -277,3 +277,38 @@ docs_analysis = deepview(
 ```
 
 This approach allows you to maintain a single DeepView MCP server while analyzing multiple projects efficiently.
+
+## Security and Scopes (OAuth)
+
+When `OAUTH_ENABLED=true`, requests to project endpoints require a valid JWT
+with appropriate scopes. The `/health` endpoint remains public.
+
+### Scope rules
+
+- Global access: include all scopes listed in `OAUTH_REQUIRED_SCOPES` (e.g.,
+  `deepview:read`).
+- Per-project access: include `deepview:project:{project_name}:read`.
+
+The server accepts either global or matching per-project scope for access.
+
+### Examples
+
+```bash
+# Missing token -> 401
+curl -i "http://localhost:8019/sample?question=Hello"
+
+# Valid token without required scope -> 403
+curl -i \
+  -H "Authorization: Bearer $TOKEN_NO_SCOPE" \
+  "http://localhost:8019/sample?question=Hello"
+
+# Valid token with global scope -> 200
+curl -i \
+  -H "Authorization: Bearer $TOKEN_WITH_deepview_read" \
+  "http://localhost:8019/sample?question=Hello"
+
+# Valid token with per-project scope -> 200
+curl -i \
+  -H "Authorization: Bearer $TOKEN_WITH_deepview_project_sample_read" \
+  "http://localhost:8019/sample?question=Hello"
+```
