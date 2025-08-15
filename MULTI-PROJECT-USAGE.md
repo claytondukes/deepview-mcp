@@ -61,6 +61,7 @@ http://localhost:8019/codebase/{project-name}?question=Your%20question
 
 **Automatic File Detection:**
 The system automatically looks for these files in order:
+
 - `codebase.xml` (repomix default)
 - `codebase.txt`
 - `codebase.md`
@@ -75,6 +76,7 @@ http://localhost:8019/va?question=Your%20question&filename=custom-file.xml
 ### 2. MCP Tools (For Programmatic Access)
 
 #### `list_codebase_files`
+
 Lists all available codebase files in mounted directories.
 
 **Example Response:**
