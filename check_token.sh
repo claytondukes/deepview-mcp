@@ -34,23 +34,19 @@ if (( ${#missing[@]} > 0 )); then
   exit 1
 fi
 
-if ! command -v jq >/dev/null 2>&1; then
-  echo "Error: jq is required (install via brew/apt)." >&2
-  exit 1
+# Fetch token with a simple JSON payload. If jq is available, extract access_token; otherwise print full JSON.
+if command -v jq >/dev/null 2>&1; then
+  ACCESS_TOKEN=$(curl -s "${AUTH0_TOKEN_URL}" \
+    -H 'content-type: application/json' \
+    -d '{"client_id":"'"${AUTH0_CLIENT_ID}"'","client_secret":"'"${AUTH0_CLIENT_SECRET}"'","audience":"'"${OIDC_AUDIENCE}"'","grant_type":"client_credentials"}' \
+    | jq -r .access_token)
+else
+  echo "Note: jq not found; printing full JSON response:" >&2
+  curl -s "${AUTH0_TOKEN_URL}" \
+    -H 'content-type: application/json' \
+    -d '{"client_id":"'"${AUTH0_CLIENT_ID}"'","client_secret":"'"${AUTH0_CLIENT_SECRET}"'","audience":"'"${OIDC_AUDIENCE}"'","grant_type":"client_credentials"}'
+  exit 0
 fi
-
-read -r -d '' TOKEN_PAYLOAD <<JSON
-{
-  "grant_type": "client_credentials",
-  "client_id": "${AUTH0_CLIENT_ID}",
-  "client_secret": "${AUTH0_CLIENT_SECRET}",
-  "audience": "${OIDC_AUDIENCE}"
-}
-JSON
-
-ACCESS_TOKEN=$(curl -s "${AUTH0_TOKEN_URL}" \
-  -H "Content-Type: application/json" \
-  -d "${TOKEN_PAYLOAD}" | jq -r .access_token)
 
 if [[ -z "${ACCESS_TOKEN}" || "${ACCESS_TOKEN}" == "null" ]]; then
   echo "Failed to obtain access token. Check client credentials, issuer, and audience." >&2
@@ -60,13 +56,11 @@ fi
 export ACCESS_TOKEN
 echo "Obtained ACCESS_TOKEN (exported in current shell if sourced)."
 echo
-cat <<'EOC'
-Example call:
-  curl -s -X POST "$OIDC_AUDIENCE" \
-    -H 'Content-Type: application/json' \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    -d '{"jsonrpc":"2.0","id":"1","method":"tools/list"}'
-EOC
+echo "Example call:"
+echo "  curl -s -X POST \"$OIDC_AUDIENCE\" \\
+    -H 'Content-Type: application/json' \\
+    -H \"Authorization: Bearer $ACCESS_TOKEN\" \\
+    -d '{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"tools/list\"}'"
 
 # Quick sanity: decode claims to verify iss and aud (optional)
 if command -v python >/dev/null 2>&1; then
