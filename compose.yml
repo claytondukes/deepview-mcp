@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: ${CONTAINER_NAME:-deepview-mcp}
     ports:
-      - "127.0.0.1:${MCP_PORT:-8019}:${MCP_PORT:-8019}"
+      - "${MCP_HOST:-127.0.0.1}:${MCP_PORT:-8019}:${MCP_PORT:-8019}"
     volumes:
       # Mount codebase directory
       - ${CODEBASE_PATH:-./codebase}:/app/codebase:ro
