@@ -489,9 +489,12 @@ Please answer the following question about the code:
                 "scopes": sorted(list(REQUIRED_SCOPES_STATIC)) if REQUIRED_SCOPES_STATIC else []
             }
 
-        # Build absolute endpoint URL from incoming request
-        host = request.headers.get("host", request.url.hostname)
-        base = f"{request.url.scheme}://{host}"
+        # Build absolute endpoint URL from proxy-aware headers
+        xf_proto = request.headers.get("x-forwarded-proto")
+        xf_host = request.headers.get("x-forwarded-host")
+        scheme = xf_proto.split(",")[0].strip() if xf_proto else request.url.scheme
+        host = xf_host.split(",")[0].strip() if xf_host else request.headers.get("host", request.url.hostname)
+        base = f"{scheme}://{host}"
         doc = {
             "name": "deepview-mcp",
             "version": "1.0.0",
