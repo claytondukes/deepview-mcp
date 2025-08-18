@@ -3,8 +3,9 @@ import logging
 from typing import Dict, Any, Optional
 from pathlib import Path
 import google.generativeai as genai
-from fastapi import FastAPI, HTTPException, Query, Request, Depends, Security
+from fastapi import FastAPI, HTTPException, Query, Request, Depends, Security, Response
 from fastapi.responses import JSONResponse
+from starlette.responses import Response
 from dotenv import load_dotenv
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
@@ -245,13 +246,13 @@ Please answer the following question about the code:
     # HEAD should be allowed for clients probing the endpoint
     @app.head("/deepview-mcp/mcp")
     def mcp_info_head():
-        # Return the same headers as GET but with empty body
-        return JSONResponse({}, headers={})
+        # Return empty body with JSON content type
+        return Response(status_code=200, media_type="application/json")
 
     # OPTIONS should announce allowed methods
     @app.options("/deepview-mcp/mcp")
     def mcp_options():
-        return JSONResponse({}, status_code=204, headers={"Allow": "GET,POST,HEAD"})
+        return Response(status_code=204, headers={"Allow": "GET,POST,HEAD"})
 
     # POST handles MCP JSON-RPC and enforces OAuth when enabled.
     @app.post("/deepview-mcp/mcp")
@@ -519,12 +520,12 @@ Please answer the following question about the code:
     # HEAD for discovery document
     @app.head("/.well-known/mcp.json")
     def mcp_discovery_head():
-        return JSONResponse({}, headers={})
+        return Response(status_code=200, media_type="application/json")
 
     # OPTIONS for discovery document
     @app.options("/.well-known/mcp.json")
     def mcp_discovery_options():
-        return JSONResponse({}, status_code=204, headers={"Allow": "GET,HEAD"})
+        return Response(status_code=204, headers={"Allow": "GET,HEAD"})
 
     # Root GET to avoid noisy 404s (returns same info as mcp_info)
     @app.get("/")
@@ -536,6 +537,11 @@ Please answer the following question about the code:
             "protocol": "mcp",
             "capabilities": ["tools"]
         })
+
+    # HEAD for root info
+    @app.head("/")
+    def root_head():
+        return Response(status_code=200, media_type="application/json")
 
     @app.get("/.well-known/oauth-protected-resource")
     def oauth_protected_resource():
