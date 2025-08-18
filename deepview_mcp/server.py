@@ -242,6 +242,17 @@ Please answer the following question about the code:
             "capabilities": ["tools"]
         })
 
+    # HEAD should be allowed for clients probing the endpoint
+    @app.head("/deepview-mcp/mcp")
+    def mcp_info_head():
+        # Return the same headers as GET but with empty body
+        return JSONResponse({}, headers={})
+
+    # OPTIONS should announce allowed methods
+    @app.options("/deepview-mcp/mcp")
+    def mcp_options():
+        return JSONResponse({}, status_code=204, headers={"Allow": "GET,POST,HEAD"})
+
     # POST handles MCP JSON-RPC and enforces OAuth when enabled.
     @app.post("/deepview-mcp/mcp")
     async def mcp_endpoint(
@@ -504,6 +515,27 @@ Please answer the following question about the code:
             "authorization": authz,
         }
         return JSONResponse(doc)
+
+    # HEAD for discovery document
+    @app.head("/.well-known/mcp.json")
+    def mcp_discovery_head():
+        return JSONResponse({}, headers={})
+
+    # OPTIONS for discovery document
+    @app.options("/.well-known/mcp.json")
+    def mcp_discovery_options():
+        return JSONResponse({}, status_code=204, headers={"Allow": "GET,HEAD"})
+
+    # Root GET to avoid noisy 404s (returns same info as mcp_info)
+    @app.get("/")
+    def root_info():
+        return JSONResponse({
+            "name": "deepview-mcp",
+            "version": "1.0.0",
+            "description": "DeepView MCP Server for codebase analysis",
+            "protocol": "mcp",
+            "capabilities": ["tools"]
+        })
 
     @app.get("/.well-known/oauth-protected-resource")
     def oauth_protected_resource():
