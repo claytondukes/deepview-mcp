@@ -155,9 +155,9 @@ analysis endpoints require a valid JWT issued by your IdP (e.g., Auth0). The
 1. Set the following environment variables (see `.env.example`):
 
    - `OAUTH_ENABLED=true`
-   - `OIDC_ISSUER` (e.g., `https://auth.logzilla.net/`)
+   - `OIDC_ISSUER` (e.g., `https://YOUR_TENANT.us.auth0.com/`)
    - `OIDC_AUDIENCE` (your API Identifier, e.g.,
-     `https://mcp.logzilla.io/deepview-mcp/mcp`)
+     `https://mcp.example.com/api`)
    - Optional: `OIDC_JWKS_URL` (auto-discovered if omitted)
    - Optional: `OIDC_ALGS` (default `RS256`)
    - Optional: `OAUTH_REQUIRED_SCOPES` (e.g., `deepview:read`)
@@ -165,6 +165,31 @@ analysis endpoints require a valid JWT issued by your IdP (e.g., Auth0). The
 
 2. Docker users: `compose.yml` already passes these variables through to the
    container. Update your `.env` file and `docker compose up -d`.
+
+### Reverse proxy (Nginx Proxy Manager)
+
+When exposing DeepView MCP publicly with OAuth, place it behind a reverse
+proxy. This project assumes Nginx Proxy Manager (NPM) fronts the service.
+
+Recommended NPM configuration for host `mcp.example.com`:
+
+- Default backend (your MCP API):
+  - Scheme: `http`
+  - Forward Hostname/IP: container/host running `deepview-mcp`
+  - Forward Port: `8019`
+- Custom locations proxying to Auth0 (replace the tenant domain accordingly):
+  - `/.well-known/openid-configuration`
+  - `/.well-known/oauth-authorization-server`
+  - `/authorize`
+  - `/oauth/token`
+  
+  For each location, set Scheme `https`, Forward Hostname `YOUR_TENANT.us.auth0.com`, Port `443`, and add:
+
+  ```nginx
+  proxy_set_header Host YOUR_TENANT.us.auth0.com;
+  proxy_ssl_server_name on;
+  proxy_ssl_name YOUR_TENANT.us.auth0.com;
+  ```
 
 ### Auth0 setup (example)
 
