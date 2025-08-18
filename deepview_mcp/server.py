@@ -461,6 +461,36 @@ Please answer the following question about the code:
         return analyze_project_get(project_name, question, filename)
     
     # OAuth/OpenID endpoints that Windsurf looks for (return minimal responses)
+    @app.get("/.well-known/mcp.json")
+    def mcp_discovery():
+        """Discovery document for ChatGPT MCP custom connector.
+
+        Served at /.well-known/mcp.json and should be routed to this backend
+        (not to Auth0). NPM must special-case this single path.
+        """
+        # Derive Auth endpoints from issuer
+        authz = None
+        if OIDC_ISSUER:
+            issuer = OIDC_ISSUER if OIDC_ISSUER.endswith("/") else f"{OIDC_ISSUER}/"
+            authz = {
+                "type": "oauth2",
+                "issuer": issuer,
+                "authorization_endpoint": f"{issuer}authorize",
+                "token_endpoint": f"{issuer}oauth/token",
+                "audience": OIDC_AUDIENCE,
+                "scopes": sorted(list(REQUIRED_SCOPES_STATIC)) if REQUIRED_SCOPES_STATIC else []
+            }
+
+        doc = {
+            "name": "deepview-mcp",
+            "version": "1.0.0",
+            "description": "DeepView MCP Server for codebase analysis",
+            "endpoint": "/deepview-mcp/mcp",
+            "capabilities": ["tools"],
+            "authorization": authz,
+        }
+        return JSONResponse(doc)
+
     @app.get("/.well-known/oauth-protected-resource")
     def oauth_protected_resource():
         return JSONResponse({"error": "not_supported"}, status_code=404)

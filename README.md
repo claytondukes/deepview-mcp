@@ -182,6 +182,7 @@ Recommended NPM configuration for host `mcp.example.com`:
   - `/.well-known/oauth-authorization-server`
   - `/authorize`
   - `/oauth/token`
+  - Note: Keep `/.well-known/mcp.json` routed to your MCP backend (not Auth0).
   
   For each location, set Scheme `https`, Forward Hostname `YOUR_TENANT.us.auth0.com`, Port `443`, and add:
 
@@ -190,6 +191,13 @@ Recommended NPM configuration for host `mcp.example.com`:
   proxy_ssl_server_name on;
   proxy_ssl_name YOUR_TENANT.us.auth0.com;
   ```
+
+Add a dedicated rule for the MCP discovery document so ChatGPT can discover the server:
+
+- Location: `/.well-known/mcp.json` → forward to your MCP backend (port 8019)
+  - Scheme: `http`
+  - Forward Hostname/IP: container/host running `deepview-mcp`
+  - Forward Port: `8019`
 
 ### Auth0 setup (example)
 
