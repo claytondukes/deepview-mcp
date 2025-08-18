@@ -4,6 +4,35 @@
 
 set -euo pipefail
 
+# Usage and flags
+DEBUG=false
+for arg in "$@"; do
+  case "$arg" in
+    --debug|-d)
+      DEBUG=true
+      shift || true
+      ;;
+    -h|--help)
+      cat >&2 <<'USAGE'
+Usage: ./get_token.sh [--debug]
+
+Description:
+  Fetches an OAuth access token (Auth0 Client Credentials) and prints it.
+
+Defaults:
+  - Prints ONLY the raw access token to stdout.
+
+Options:
+  --debug, -d   Print helpful context, example curl, and decoded claims.
+  -h, --help    Show this help and exit.
+USAGE
+      exit 0
+      ;;
+    *)
+      ;;
+  esac
+done
+
 # Allow overriding which env file to load (defaults to .env at repo root)
 ENV_FILE="${ENV_FILE:-.env}"
 if [ -f "$ENV_FILE" ]; then
@@ -34,18 +63,23 @@ if (( ${#missing[@]} > 0 )); then
   exit 1
 fi
 
-# Fetch token with a simple JSON payload. If jq is available, extract access_token; otherwise print full JSON.
+# Fetch token response JSON
+RESPONSE=$(curl -s "${AUTH0_TOKEN_URL}" \
+  -H 'content-type: application/json' \
+  -d '{"client_id":"'"${AUTH0_CLIENT_ID}"'","client_secret":"'"${AUTH0_CLIENT_SECRET}"'","audience":"'"${OIDC_AUDIENCE}"'","grant_type":"client_credentials"}')
+
+# Extract access_token using jq if available, otherwise Python. Fail if neither available.
 if command -v jq >/dev/null 2>&1; then
-  ACCESS_TOKEN=$(curl -s "${AUTH0_TOKEN_URL}" \
-    -H 'content-type: application/json' \
-    -d '{"client_id":"'"${AUTH0_CLIENT_ID}"'","client_secret":"'"${AUTH0_CLIENT_SECRET}"'","audience":"'"${OIDC_AUDIENCE}"'","grant_type":"client_credentials"}' \
-    | jq -r .access_token)
+  ACCESS_TOKEN=$(printf '%s' "$RESPONSE" | jq -r '.access_token // empty')
+elif command -v python >/dev/null 2>&1; then
+  ACCESS_TOKEN=$(printf '%s' "$RESPONSE" | python -c 'import sys, json;\n\
+try:\n\
+    data=json.load(sys.stdin); print(data.get("access_token", ""))\n\
+except Exception:\n\
+    print("")')
 else
-  echo "Note: jq not found; printing full JSON response:" >&2
-  curl -s "${AUTH0_TOKEN_URL}" \
-    -H 'content-type: application/json' \
-    -d '{"client_id":"'"${AUTH0_CLIENT_ID}"'","client_secret":"'"${AUTH0_CLIENT_SECRET}"'","audience":"'"${OIDC_AUDIENCE}"'","grant_type":"client_credentials"}'
-  exit 0
+  echo "Error: need either 'jq' or 'python' to extract access_token. Please install one of them." >&2
+  exit 1
 fi
 
 if [[ -z "${ACCESS_TOKEN}" || "${ACCESS_TOKEN}" == "null" ]]; then
@@ -53,8 +87,16 @@ if [[ -z "${ACCESS_TOKEN}" || "${ACCESS_TOKEN}" == "null" ]]; then
   exit 1
 fi
 
-export ACCESS_TOKEN
-echo "Obtained ACCESS_TOKEN (exported in current shell if sourced)."
+# Default behavior: print ONLY the token
+if [ "$DEBUG" = false ]; then
+  printf '%s\n' "$ACCESS_TOKEN"
+  exit 0
+fi
+
+# Debug/verbose mode
+echo "Obtained ACCESS_TOKEN. Printing token first (for easy copy/paste):"
+echo
+echo "$ACCESS_TOKEN"
 echo
 echo "Example call:"
 echo "  curl -s -X POST \"$OIDC_AUDIENCE\" \\
@@ -64,7 +106,7 @@ echo "  curl -s -X POST \"$OIDC_AUDIENCE\" \\
 
 # Quick sanity: decode claims to verify iss and aud (optional)
 if command -v python >/dev/null 2>&1; then
-  if ! python - <<'PY'
+  if ! ACCESS_TOKEN="$ACCESS_TOKEN" python - <<'PY'
 try:
     import os, jwt
     t=os.environ.get("ACCESS_TOKEN")
