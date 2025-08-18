@@ -231,27 +231,35 @@ Please answer the following question about the code:
         })
     
     # MCP protocol endpoint (following lzdocs pattern)
-    # Support both GET and POST for MCP protocol
-    @app.post("/deepview-mcp/mcp")
+    # GET is public (no auth) and returns server info for discovery.
     @app.get("/deepview-mcp/mcp")
-    async def mcp_endpoint(request: Request, claims: Dict[str, Any] = Depends(get_current_token_claims)):
-        """MCP protocol endpoint for Windsurf integration."""
+    def mcp_info():
+        return JSONResponse({
+            "name": "deepview-mcp",
+            "version": "1.0.0",
+            "description": "DeepView MCP Server for codebase analysis",
+            "protocol": "mcp",
+            "capabilities": ["tools"]
+        })
+
+    # POST handles MCP JSON-RPC and enforces OAuth when enabled.
+    @app.post("/deepview-mcp/mcp")
+    async def mcp_endpoint(
+        request: Request,
+        credentials: Optional[HTTPAuthorizationCredentials] = Security(http_bearer)
+    ):
+        """MCP protocol endpoint for Windsurf/ChatGPT integration (JSON-RPC)."""
         try:
-            # Handle GET requests (return server info)
-            if request.method == "GET":
-                return JSONResponse({
-                    "name": "deepview-mcp",
-                    "version": "1.0.0",
-                    "description": "DeepView MCP Server for codebase analysis",
-                    "protocol": "mcp",
-                    "capabilities": ["tools"]
-                })
-            
-            # Handle POST requests (MCP protocol)
             body = await request.json()
             method = body.get("method")
             params = body.get("params", {})
             request_id = body.get("id")  # JSON-RPC requires matching response ID
+            
+            # Resolve claims based on OAuth setting
+            if OAUTH_ENABLED:
+                claims = get_current_token_claims(credentials)
+            else:
+                claims = {"sub": "anonymous"}
             
             # Standard MCP initialization methods
             if method == "initialize":
