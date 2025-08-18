@@ -470,7 +470,7 @@ Please answer the following question about the code:
     
     # OAuth/OpenID endpoints that Windsurf looks for (return minimal responses)
     @app.get("/.well-known/mcp.json")
-    def mcp_discovery():
+    def mcp_discovery(request: Request):
         """Discovery document for ChatGPT MCP custom connector.
 
         Served at /.well-known/mcp.json and should be routed to this backend
@@ -489,11 +489,14 @@ Please answer the following question about the code:
                 "scopes": sorted(list(REQUIRED_SCOPES_STATIC)) if REQUIRED_SCOPES_STATIC else []
             }
 
+        # Build absolute endpoint URL from incoming request
+        host = request.headers.get("host", request.url.hostname)
+        base = f"{request.url.scheme}://{host}"
         doc = {
             "name": "deepview-mcp",
             "version": "1.0.0",
             "description": "DeepView MCP Server for codebase analysis",
-            "endpoint": "/deepview-mcp/mcp",
+            "endpoint": f"{base}/deepview-mcp/mcp",
             "capabilities": ["tools"],
             "authorization": authz,
         }
