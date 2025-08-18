@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional
 from pathlib import Path
 import google.generativeai as genai
 from fastapi import FastAPI, HTTPException, Query, Request, Depends, Security, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from starlette.responses import Response
 from dotenv import load_dotenv
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -542,6 +542,28 @@ Please answer the following question about the code:
     @app.head("/")
     def root_head():
         return Response(status_code=200, media_type="application/json")
+
+    # --- Static favicon handlers ---
+    static_dir = Path(__file__).parent / "static"
+
+    def _serve_favicon(filename: str, media_type: str) -> Response:
+        file_path = static_dir / filename
+        if file_path.exists() and file_path.is_file():
+            return FileResponse(str(file_path), media_type=media_type)
+        # No icon present yet; avoid errors/noise
+        return Response(status_code=204)
+
+    @app.get("/favicon.ico")
+    def favicon_ico():
+        return _serve_favicon("favicon.ico", "image/x-icon")
+
+    @app.get("/favicon.png")
+    def favicon_png():
+        return _serve_favicon("favicon.png", "image/png")
+
+    @app.get("/favicon.svg")
+    def favicon_svg():
+        return _serve_favicon("favicon.svg", "image/svg+xml")
 
     @app.get("/.well-known/oauth-protected-resource")
     def oauth_protected_resource():

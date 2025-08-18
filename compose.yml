@@ -13,6 +13,8 @@ services:
       - ${LOGS_PATH:-./logs}:/app/logs:rw
       # Mount data directory for persistent storage
       - ${DATA_PATH:-./data}:/data:rw
+      # Mount static assets (favicons, etc.)
+      - ./deepview_mcp/static:/app/deepview_mcp/static:ro
     environment:
       # Gemini API Configuration
       - GEMINI_API_KEY=${GEMINI_API_KEY}
